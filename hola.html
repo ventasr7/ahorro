@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R7</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="number"],
+        input[type="date"],
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+
+        input[type="number"], input[type="date"] {
+            background-color: #f9f9f9;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .list {
+            margin-top: 20px;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            background-color: #f9f9f9;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-item button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .list-item button:hover {
+            background-color: #00b41e;
+        }
+
+        .progress-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 25px;
+            height: 35px;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 25px;
+        }
+
+        .total {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 15px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>R7</h1>
+
+        <div class="form-group">
+            <label for="cantidad">Cantidad de dinero (DOP):</label>
+            <input type="number" id="cantidad" placeholder="Ingresa la cantidad de dinero en pesos dominicanos">
+        </div>
+
+        <div class="form-group">
+            <label for="fecha">Fecha:</label>
+            <input type="date" id="fecha">
+        </div>
+
+        <button onclick="agregar()">Agregar ahorro</button>
+
+        <div class="list" id="lista-ahorros"></div>
+
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div id="barra-progreso" class="progress" style="width: 0%;"></div>
+            </div>
+            <p id="total-ahorrado" class="total">Total ahorrado: RD$ 0.00</p>
+        </div>
+    </div>
+
+    <script>
+        const objetivo = 500000;  // Objetivo en pesos dominicanos
+        const barraProgreso = document.getElementById('barra-progreso');
+        const totalAhorro = document.getElementById('total-ahorrado');
+        const listaAhorros = document.getElementById('lista-ahorros');
+
+        // Recuperamos los ahorros guardados en localStorage
+        let ahorros = JSON.parse(localStorage.getItem('ahorros')) || [];
+
+        // Función para guardar los ahorros en localStorage
+        function guardarAhorros() {
+            localStorage.setItem('ahorros', JSON.stringify(ahorros));
+        }
+
+        // Función para agregar un nuevo ahorro
+        function agregar() {
+            const cantidad = parseFloat(document.getElementById('cantidad').value);
+            const fecha = document.getElementById('fecha').value;
+
+            if (!cantidad || !fecha) {
+                alert('Por favor, ingresa todos los campos.');
+                return;
+            }
+
+            const ahorro = { cantidad, fecha };
+            ahorros.push(ahorro);
+            guardarAhorros();  // Guardamos los ahorros después de agregar
+            actualizarLista();
+            actualizarBarra();
+        }
+
+        // Función para actualizar la lista de ahorros en la página
+        function actualizarLista() {
+            listaAhorros.innerHTML = '';
+            let total = 0;
+
+            ahorros.forEach((ahorro, index) => {
+                total += ahorro.cantidad;
+                const item = document.createElement('div');
+                item.classList.add('list-item');
+
+                item.innerHTML = `
+                    <div>
+                        <p>${ahorro.fecha} - RD$ ${ahorro.cantidad.toFixed(2)}</p>
+                    </div>
+                    <div>
+                        <button onclick="editar(${index})">Editar</button>
+                        <button onclick="eliminar(${index})">Eliminar</button>
+                    </div>
+                `;
+                listaAhorros.appendChild(item);
+            });
+
+            totalAhorro.textContent = `Total ahorrado: RD$ ${total.toFixed(2)}`;
+        }
+
+        // Función para editar un ahorro
+        function editar(index) {
+            const cantidad = prompt('Nueva cantidad de dinero (DOP):', ahorros[index].cantidad);
+            const fecha = prompt('Nueva fecha:', ahorros[index].fecha);
+
+            if (cantidad && fecha) {
+                ahorros[index].cantidad = parseFloat(cantidad);
+                ahorros[index].fecha = fecha;
+                guardarAhorros();  // Guardamos los cambios en localStorage
+                actualizarLista();
+                actualizarBarra();
+            }
+        }
+
+        // Función para eliminar un ahorro
+        function eliminar(index) {
+            ahorros.splice(index, 1);
+            guardarAhorros();  // Guardamos los cambios en localStorage
+            actualizarLista();
+            actualizarBarra();
+        }
+
+        // Función para actualizar la barra de progreso
+        function actualizarBarra() {
+            let total = ahorros.reduce((sum, ahorro) => sum + ahorro.cantidad, 0);
+            let porcentaje = (total / objetivo) * 100;
+            if (porcentaje > 100) porcentaje = 100; // Para no exceder el 100%
+
+            barraProgreso.style.width = `${porcentaje}%`;
+        }
+
+        // Inicializamos la lista y la barra al cargar la página
+        actualizarLista();
+        actualizarBarra();
+    </script>
+</body>
+</html>
